@@ -1,14 +1,23 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use godot::prelude::*;
+use godot::classes::Node;
+use godot::classes::INode;
+
+struct Extension;
+
+#[gdextension]
+unsafe impl ExtensionLibrary for Extension {}
+
+#[derive(GodotClass)]
+#[class(base=Node)]
+struct Interface {
+    base: Base<Node>
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+#[godot_api]
+impl INode for Interface {
+    fn init(base: Base<Node>) -> Self {
+        Self {
+            base
+        }
     }
 }
