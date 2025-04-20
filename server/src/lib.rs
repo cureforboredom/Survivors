@@ -6,8 +6,6 @@ use spacetimedb::{reducer, table, Identity, ReducerContext, Table, Timestamp};
 pub struct User {
     #[primary_key]
     identity: Identity,
-    #[unique]
-    #[index(btree)]
     name: Option<String>,
     room: Option<u64>,
     online: bool,
@@ -23,8 +21,8 @@ pub struct Room {
     key: String,
 }
 
-#[table(name = event, public)]
-pub struct Event {
+#[table(name = message, public)]
+pub struct Message {
     #[primary_key]
     #[auto_inc]
     id: u64,
@@ -67,16 +65,20 @@ pub fn create_room(ctx: &ReducerContext) -> Result<(), String> {
 #[reducer]
 pub fn join_room(ctx: &ReducerContext, room_key: String) -> Result<(), String> {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
-        if let Some(room) = ctx.db.room().key().find(room_key) {
-            ctx.db.user().identity().update(User {
+        if let Some(room) = ctx.db.room().key().find(room_key.clone()) {
+            log::info!("joining room with key: {}", room_key.clone());
+            let r = ctx.db.user().identity().update(User {
                 room: Some(room.id),
                 ..user
             });
+            log::info!("{:?}: {:?}", r.name, r.room);
             Ok(())
         } else {
+            log::info!("Room key is not valid");
             Err("Room key is not valid".to_string())
         }
     } else {
+        log::info!("Unknown user");
         Err("Unknown user".to_string())
     }
 }
@@ -84,27 +86,31 @@ pub fn join_room(ctx: &ReducerContext, room_key: String) -> Result<(), String> {
 #[reducer]
 pub fn set_name(ctx: &ReducerContext, name: String) -> Result<(), String> {
     if name.is_empty() {
+        log::info!("Names cannot be empty");
         Err("Names cannot be empty".to_string())
     } else if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
-        ctx.db.user().identity().update(User {
-            name: Some(name),
+        log::info!("Setting name to {}", name.clone());
+        let r = ctx.db.user().identity().update(User {
+            name: Some(name.clone()),
             ..user
         });
+        log::info!("new name: {}", r.name.unwrap());
         Ok(())
     } else {
+        log::info!("Cannot set name for unknown user");
         Err("Cannot set name for unknown user".to_string())
     }
 }
 
 #[reducer]
-pub fn send_event(
+pub fn send_message(
     ctx: &ReducerContext,
     kind: String,
     data: Option<Vec<f64>>,
 ) -> Result<(), String> {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
         if user.room.is_some() {
-            ctx.db.event().insert(Event {
+            ctx.db.message().insert(Message {
                 id: 0,
                 sender: ctx.sender,
                 room: user.room.unwrap(),
@@ -124,12 +130,14 @@ pub fn send_event(
 #[reducer(client_connected)]
 pub fn client_connected(ctx: &ReducerContext) {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
+        log::info!("user exists, setting online to true");
         ctx.db.user().identity().update(User {
             online: true,
-            room: None,
+            //room: None,
             ..user
         });
     } else {
+        log::info!("user doesn't exist, setting online to true");
         ctx.db.user().insert(User {
             identity: ctx.sender,
             online: true,
@@ -144,7 +152,7 @@ pub fn client_disconnected(ctx: &ReducerContext) {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
         ctx.db.user().identity().update(User {
             online: false,
-            room: None,
+            //room: None,
             ..user
         });
     } else {
