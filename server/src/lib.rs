@@ -1,8 +1,10 @@
 use spacetimedb::rand::distributions::Alphanumeric;
 use spacetimedb::rand::Rng;
-use spacetimedb::{reducer, table, Identity, ReducerContext, Table, Timestamp};
+use spacetimedb::{
+    reducer, table, Identity, ReducerContext, ScheduleAt, Table, TimeDuration, Timestamp,
+};
 
-#[table(name = user)]
+#[table(name = user, public)]
 pub struct User {
     #[primary_key]
     identity: Identity,
@@ -27,11 +29,50 @@ pub struct Message {
     #[auto_inc]
     id: u64,
     sender: Identity,
-    #[index(btree)]
     room: u64,
+    #[index(btree)]
     sent: Timestamp,
     kind: String,
     data: Option<Vec<f64>>,
+}
+
+#[table(name = clear_messages_schedule, scheduled(clear_messages))]
+struct ClearMessagesSchedule {
+    #[primary_key]
+    #[auto_inc]
+    scheduled_id: u64,
+    scheduled_at: ScheduleAt,
+}
+
+#[reducer]
+fn clear_messages(ctx: &ReducerContext, _arg: ClearMessagesSchedule) -> Result<(), String> {
+    if ctx.sender != ctx.identity() {
+        return Err("Reducer `clear_messages` may not be invoked by clients".to_string());
+    }
+    let messages = ctx
+        .db
+        .message()
+        .iter()
+        .filter(|m| ctx.timestamp - TimeDuration::from_micros(60_000_000) > m.sent)
+        .collect::<Vec<_>>();
+
+    for message in messages {
+        ctx.db.message().delete(message);
+    }
+
+    Ok(())
+}
+
+#[reducer(init)]
+fn init(ctx: &ReducerContext) {
+    let one_minute = TimeDuration::from_micros(60_000_000);
+
+    ctx.db
+        .clear_messages_schedule()
+        .insert(ClearMessagesSchedule {
+            scheduled_id: 0,
+            scheduled_at: one_minute.into(),
+        });
 }
 
 #[reducer]
@@ -66,19 +107,15 @@ pub fn create_room(ctx: &ReducerContext) -> Result<(), String> {
 pub fn join_room(ctx: &ReducerContext, room_key: String) -> Result<(), String> {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
         if let Some(room) = ctx.db.room().key().find(room_key.clone()) {
-            log::info!("joining room with key: {}", room_key.clone());
-            let r = ctx.db.user().identity().update(User {
+            ctx.db.user().identity().update(User {
                 room: Some(room.id),
                 ..user
             });
-            log::info!("{:?}: {:?}", r.name, r.room);
             Ok(())
         } else {
-            log::info!("Room key is not valid");
             Err("Room key is not valid".to_string())
         }
     } else {
-        log::info!("Unknown user");
         Err("Unknown user".to_string())
     }
 }
@@ -86,18 +123,14 @@ pub fn join_room(ctx: &ReducerContext, room_key: String) -> Result<(), String> {
 #[reducer]
 pub fn set_name(ctx: &ReducerContext, name: String) -> Result<(), String> {
     if name.is_empty() {
-        log::info!("Names cannot be empty");
         Err("Names cannot be empty".to_string())
     } else if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
-        log::info!("Setting name to {}", name.clone());
-        let r = ctx.db.user().identity().update(User {
+        ctx.db.user().identity().update(User {
             name: Some(name.clone()),
             ..user
         });
-        log::info!("new name: {}", r.name.unwrap());
         Ok(())
     } else {
-        log::info!("Cannot set name for unknown user");
         Err("Cannot set name for unknown user".to_string())
     }
 }
@@ -130,19 +163,17 @@ pub fn send_message(
 #[reducer(client_connected)]
 pub fn client_connected(ctx: &ReducerContext) {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
-        log::info!("user exists, setting online to true");
         ctx.db.user().identity().update(User {
             online: true,
-            //room: None,
+            room: Some(0),
             ..user
         });
     } else {
-        log::info!("user doesn't exist, setting online to true");
         ctx.db.user().insert(User {
             identity: ctx.sender,
             online: true,
             name: None,
-            room: None,
+            room: Some(0),
         });
     }
 }
@@ -152,7 +183,6 @@ pub fn client_disconnected(ctx: &ReducerContext) {
     if let Some(user) = ctx.db.user().identity().find(ctx.sender) {
         ctx.db.user().identity().update(User {
             online: false,
-            //room: None,
             ..user
         });
     } else {
