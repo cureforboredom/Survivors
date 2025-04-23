@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://ct5mcn3vqv87y"]
+
+[ext_resource type="Script" uid="uid://dtf7i1pblle1l" path="res://Scripts/player.gd" id="1_v0iea"]
+
+[node name="Player" type="AnimatableBody2D"]
+script = ExtResource("1_v0iea")
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+modulate = Color(0.83, 0.0581, 0.302535, 1)
+polygon = PackedVector2Array(-14, -13, -14, 15, 15, 15, 15, -13)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+
+[node name="Gun" type="Polygon2D" parent="."]
+modulate = Color(0.35, 0, 0.110833, 1)
+polygon = PackedVector2Array(-2, -2, 2, -2, 2, -21, -2, -21)

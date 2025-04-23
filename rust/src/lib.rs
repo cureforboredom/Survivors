@@ -4,6 +4,8 @@ use std::sync::mpsc::TryRecvError;
 
 use std::fs;
 
+use const_format::concatcp;
+
 use godot::classes::INode;
 use godot::classes::Node;
 use godot::prelude::*;
@@ -18,7 +20,7 @@ use module_bindings::*;
 
 const HOST: &str = "https://maincloud.spacetimedb.com";
 const DB_NAME: &str = "c20090aef116d36e131c824df8d418c0bad5f42f954167f5fa893895e77fc7bd";
-const TOKEN_FILE: &str = "./tanks.token";
+const TOKEN_FILE: &str = &concatcp!("./" , DB_NAME , ".token");
 
 struct Extension;
 
@@ -108,7 +110,11 @@ impl Interface {
             return varray!["".to_string(), "Closed".to_string(), vec![0.0; 0]];
         }
         let message = message.unwrap();
-        varray![message.sender.to_string(), message.kind, message.data.unwrap_or(vec![0.0; 0])]
+        varray![
+            message.sender.to_string(),
+            message.kind,
+            message.data.unwrap_or(vec![0.0; 0])
+        ]
     }
 
     #[func]
@@ -128,7 +134,7 @@ impl Interface {
     fn join_room(&mut self, key: String) {
         self.ctx.reducers.join_room(key).unwrap_or_default();
     }
-    
+
     #[func]
     fn get_id(&mut self) -> String {
         self.ctx.identity().to_string()

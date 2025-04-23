@@ -1,9 +1,0 @@
-[gd_scene load_steps=3 format=3 uid="uid://b3uovv6b1bvii"]
-
-[ext_resource type="Script" uid="uid://dsi815nf52ooo" path="res://Scripts/dot.gd" id="1_7ilwh"]
-[ext_resource type="Texture2D" uid="uid://cah8k0hs76kd5" path="res://Assets/dot.png" id="1_wye70"]
-
-[node name="Dot" type="Sprite2D"]
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("1_wye70")
-script = ExtResource("1_7ilwh")

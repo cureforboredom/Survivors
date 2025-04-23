@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 spacetimedb-sdk = "1.1"
 hex = "0.4"
+const_format = "0.2.34"
 
 [dependencies.godot]
 git = "https://github.com/godot-rust/gdext"

@@ -1,7 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://b042asjnfy4di"]
+[gd_scene load_steps=2 format=3 uid="uid://dj15jh5b30ycm"]
 
-[ext_resource type="PackedScene" uid="uid://bb80at78b5656" path="res://Scenes/Interface.tscn" id="1_jjgbg"]
+[ext_resource type="PackedScene" uid="uid://ct5mcn3vqv87y" path="res://Scenes/player.tscn" id="1_jjgbg"]
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node2D"]
 
-[node name="Interface" parent="." instance=ExtResource("1_jjgbg")]
+[node name="Player" parent="." instance=ExtResource("1_jjgbg")]
+position = Vector2(215, 241)
+scale = Vector2(1.912, 1.912)
