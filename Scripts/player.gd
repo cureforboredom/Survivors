@@ -26,6 +26,10 @@ func _physics_process(delta: float) -> void:
   position += velocity * delta
   velocity *= Vector2(0.925, 0.925)
 
-  var aim = Vector2(Input.get_axis("aim_left", "aim_right"), Input.get_axis("aim_forward", "aim_back"))
-  gun.rotation = aim.rotated(PI / 2.0).angle()
-  print(aim)
+  var aim = Vector2(Input.get_axis("aim_left", "aim_right"), Input.get_axis("aim_forward", "aim_back")).normalized()
+  if aim:
+    var new_rotation = aim.rotated(PI / 2.0).angle()
+    gun.rotation = lerp_angle(gun.rotation, new_rotation, 0.15)
+
+  if Input.is_action_just_pressed("shoot"):
+    print("Shoot")
