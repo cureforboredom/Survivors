@@ -11,6 +11,8 @@ const MAX_SPEED = 2550
 
 var health = 3
 
+var move_timer = 0
+
 var velocity = Vector2(0, 0)
 
 var bullets = []
@@ -49,6 +51,15 @@ func _physics_process(delta: float) -> void:
   shot_timer -= delta
 
   velocity = clamp(velocity, Vector2(-MAX_SPEED, -MAX_SPEED), Vector2(MAX_SPEED, MAX_SPEED))
+
+  if velocity.length() > 100:
+    move_timer = 0
+  else:
+    move_timer += delta
+    if move_timer > 1.2:
+      health = 0
+      lost_health.emit()
+
   var new_position = position + velocity * delta
   new_position = new_position.clamp(Vector2(25, 25), get_viewport().get_visible_rect().size)
   position = new_position

@@ -36,5 +36,6 @@ offset_top = 195.0
 offset_right = 809.0
 offset_bottom = 354.0
 text = "GAME OVER
-HIGH SCORE: 0000"
+HIGH SCORE:"
 label_settings = SubResource("LabelSettings_jjgbg")
+horizontal_alignment = 1
