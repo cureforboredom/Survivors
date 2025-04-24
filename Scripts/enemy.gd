@@ -21,13 +21,17 @@ func _physics_process(delta: float) -> void:
     enemy_died.emit()
     queue_free()
     
-  var closest = targets[0]
+  var closest = null
   for target in targets:
-    if (position - target.position).length() < (position - closest.position).length():
-      closest = target
+    if is_instance_valid(target):
+      if closest:
+        if (position - target.position).length() < (position - closest).length():
+          closest = target.position
+      else:
+        closest = target.position
     
   speed += 12 * delta
-  direction = (position - closest.position).rotated(PI / 2).angle()
+  direction = (position - closest).rotated(PI / 2).angle()
   position += Vector2(0, speed * delta).rotated(direction)
   
 func hit():

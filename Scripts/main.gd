@@ -1,10 +1,14 @@
 extends Node2D
 
 @onready var enemy_scene = preload("res://Scenes/enemy.tscn")
-@onready var player = $Player
-@onready var bot = $Bot
-@onready var health_bar = $HealthBar
-@onready var score_display = $Score
+@onready var player_scene = preload("res://Scenes/player.tscn")
+@onready var bot_scene = preload("res://Scenes/bot.tscn")
+@onready var health_bar = $HUD/HealthBar
+@onready var score_display = $HUD/Score
+@onready var game_over_message = $HUD/GameOver
+
+var player = null
+var bot = null
 
 var vw
 var vh
@@ -13,10 +17,13 @@ var spawn_timer = 0
 var spawn_delay = 2.0
 
 var score = 0
+var high_score = 0
 
 var enemies = []
 
 func _ready() -> void:
+  reset()
+
   vw = get_viewport().size.x
   vh = get_viewport().size.y
   walls = [
@@ -26,10 +33,11 @@ func _ready() -> void:
     [[-100, -100], [-100, vh + 100]]
   ]
   
-  player.connect("lost_health", _on_player_lost_health)
-
 
 func _process(delta: float) -> void:
+  if Input.is_action_just_pressed("reset"):
+    reset()
+
   if spawn_timer <= 0:
     spawn_enemy()
     spawn_timer = randf_range(0.1, spawn_delay)
@@ -59,9 +67,45 @@ func spawn_enemy() -> void:
   enemies.append(new_enemy)
   add_child(new_enemy)
 
+func reset():
+  for enemy in enemies:
+    if is_instance_valid(enemy):
+      enemy.queue_free()
+  enemies = []
+
+  var screen_size = get_viewport().get_visible_rect().size
+  if player:
+    player.queue_free()
+  if bot:
+    bot.queue_free()
+  player = player_scene.instantiate()
+  bot = bot_scene.instantiate()
+  player.position = Vector2(screen_size.x / 3, screen_size.y / 2)
+  bot.position = Vector2(screen_size.x / 3 * 2, screen_size.y / 2)
+  add_child(player)
+  add_child(bot)
+  
+  player.connect("lost_health", _on_player_lost_health)
+  
+  score = 0
+
+  health_bar.text = "<3".repeat(player.health)
+  score_display.text = str(score)
+  game_over_message.visible = false
+
+  
+func death(p: Node2D):
+  p.queue_free()
+  if score > high_score:
+    high_score = score
+  game_over_message.text = "GAME OVER\nHIGH SCORE: " + str(high_score) + "\nHIT Y TO RESTART"
+  game_over_message.visible = true
 
 func _on_player_lost_health():
   health_bar.text = "<3".repeat(player.health)
+  if player.health <= 0:
+    death(player)
+    player = null
 
 func _on_enemy_died():
   score += 1
