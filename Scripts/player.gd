@@ -43,7 +43,7 @@ func _physics_process(delta: float) -> void:
   if shot_timer <= 0:
     shot_timer = 0.12
     var new_bullet = bullet_scene.instantiate()
-    add_child(new_bullet)
+    get_tree().current_scene.add_child(new_bullet)
     new_bullet.global_position = gun.global_position + Vector2(0, -50).rotated(gun.rotation)
     new_bullet.direction = gun.rotation
     # velocity += Vector2(0, 110).rotated(gun.rotation)
