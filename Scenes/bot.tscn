@@ -1,18 +1,18 @@
 [gd_scene load_steps=2 format=3 uid="uid://dec3cbvu8hop0"]
 
-[ext_resource type="Script" uid="uid://dtf7i1pblle1l" path="res://Scripts/player.gd" id="1_ccb4n"]
+[ext_resource type="Script" uid="uid://bj4afuny1m526" path="res://Scripts/bot.gd" id="1_ccb4n"]
 
-[node name="Player" type="AnimatableBody2D"]
+[node name="Bot" type="AnimatableBody2D"]
 z_index = 99
 z_as_relative = false
 script = ExtResource("1_ccb4n")
 
 [node name="Polygon2D" type="Polygon2D" parent="."]
-modulate = Color(0.83, 0.0581, 0.302535, 1)
+modulate = Color(0.1121, 0.59, 0.247505, 1)
 polygon = PackedVector2Array(-21, -22, -21, 22, 21, 22, 21, -22)
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
 
 [node name="Gun" type="Polygon2D" parent="."]
-modulate = Color(0.35, 0, 0.110833, 1)
+modulate = Color(0.09, 0.25, 0.135333, 1)
 polygon = PackedVector2Array(-5, -6, 5, -6, 5, -43, -5, -43)
