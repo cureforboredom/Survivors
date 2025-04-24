@@ -28,10 +28,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
   if Input.is_action_just_pressed("left") or \
     Input.is_action_just_pressed("right"):
-      velocity.x *= 0.8
+      velocity.x *= 0.7
   if Input.is_action_just_pressed("forward") or \
     Input.is_action_just_pressed("back"):
-      velocity.y *= 0.8
+      velocity.y *= 0.7
   var move = Vector2(Input.get_axis("left", "right"), Input.get_axis("forward", "back"))
   velocity += move * delta * MAX_SPEED
 

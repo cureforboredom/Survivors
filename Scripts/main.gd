@@ -40,8 +40,8 @@ func _process(delta: float) -> void:
 
   if spawn_timer <= 0:
     spawn_enemy()
-    spawn_timer = randf_range(0.1, spawn_delay)
-    spawn_delay = clamp(spawn_delay * 0.99, 0.75, 2.0)
+    spawn_timer = randf_range(0.05, spawn_delay)
+    spawn_delay = clamp(spawn_delay * 0.99, 1.0, 2.0)
   else:
     spawn_timer -= delta
     
@@ -88,6 +88,7 @@ func reset():
   player.connect("lost_health", _on_player_lost_health)
   
   score = 0
+  spawn_delay = 2.0
 
   health_bar.text = "<3".repeat(player.health)
   score_display.text = str(score)
